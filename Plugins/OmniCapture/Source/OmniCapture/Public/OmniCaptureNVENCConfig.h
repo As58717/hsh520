@@ -12,6 +12,8 @@
 #include "UObject/Object.h"
 #include "OmniCaptureNVENCConfig.generated.h"
 
+struct FOmniNVENCDirectCapabilities;
+
 /**
  * NVENC编码器的详细配置选项
  */

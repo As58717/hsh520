@@ -40,18 +40,13 @@ UOmniCaptureNVENCConfig* UOmniCaptureNVENCConfig::GetDefault()
 FOmniCaptureQuality UOmniCaptureNVENCConfig::GenerateCaptureQuality() const
 {
     FOmniCaptureQuality Quality;
-    
-    Quality.Codec = Codec;
+
     Quality.TargetBitrateKbps = TargetBitrateKbps;
     Quality.MaxBitrateKbps = MaxBitrateKbps;
-    Quality.GOPSize = GOPSize;
-    Quality.BFrameCount = BFrameCount;
-    Quality.bUseCBR = bUseCBR;
-    Quality.QualityPreset = QualityPreset;
-    Quality.bEnableDynamicGOP = bEnableDynamicGOP;
-    Quality.bUseSceneChangeDetection = bUseSceneChangeDetection;
-    Quality.MaxEncodingLatencyMs = MaxEncodingLatencyMs;
-    
+    Quality.GOPLength = GOPSize;
+    Quality.BFrames = BFrameCount;
+    Quality.bLowLatency = bUseCBR;
+
     return Quality;
 }
 
@@ -131,20 +126,20 @@ void UOmniCaptureNVENCConfig::ValidateAndAdjustForCapabilities(const FOmniNVENCD
         bEnableHDR = false;
         bAdjusted = true;
     }
-    
+
     // 验证B帧数量
-    if (BFrameCount > Capabilities.MaxBFrames)
+    if (Capabilities.MaxBFrames > 0 && BFrameCount > Capabilities.MaxBFrames)
     {
-        UE_LOG(LogOmniCaptureNVENCConfig, Warning, TEXT("B-frame count exceeds maximum supported (%d), adjusting to %d"), 
+        UE_LOG(LogOmniCaptureNVENCConfig, Warning, TEXT("B-frame count exceeds maximum supported (%d), adjusting to %d"),
             BFrameCount, Capabilities.MaxBFrames);
         BFrameCount = Capabilities.MaxBFrames;
         bAdjusted = true;
     }
-    
+
     // 验证GOP大小
-    if (GOPSize > Capabilities.MaxGOPSize)
+    if (Capabilities.MaxGOPSize > 0 && GOPSize > Capabilities.MaxGOPSize)
     {
-        UE_LOG(LogOmniCaptureNVENCConfig, Warning, TEXT("GOP size exceeds maximum supported (%d), adjusting to %d"), 
+        UE_LOG(LogOmniCaptureNVENCConfig, Warning, TEXT("GOP size exceeds maximum supported (%d), adjusting to %d"),
             GOPSize, Capabilities.MaxGOPSize);
         GOPSize = Capabilities.MaxGOPSize;
         bAdjusted = true;

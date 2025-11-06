@@ -8,7 +8,8 @@
 #include "RHIResources.h"
 
 // NVENC API类型定义（避免直接包含NVIDIA头文件）
-typedef struct _NV_ENCODE_API_FUNCTION_LIST* PNV_ENCODE_API_FUNCTION_LIST;
+struct _NV_ENCODE_API_FUNCTION_LIST;
+using PNV_ENCODE_API_FUNCTION_LIST = _NV_ENCODE_API_FUNCTION_LIST*;
 typedef void* NV_ENC_DEVICE;
 typedef void* NV_ENC_ENCODER;
 typedef void* NV_ENC_INPUT_RESOURCE;
@@ -113,7 +114,7 @@ private:
 
 private:
     // NVENC API相关
-    void* NVENCModuleHandle = nullptr;
+    static void* NVENCModuleHandle;
     PNV_ENCODE_API_FUNCTION_LIST NvEncodeAPI = nullptr;
     NV_ENC_DEVICE NvEncDevice = nullptr;
     NV_ENC_ENCODER NvEncoder = nullptr;

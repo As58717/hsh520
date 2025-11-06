@@ -9,6 +9,7 @@
 #include "RendererInterface.h"
 #include "Containers/Queue.h"
 #include "OmniCaptureTypes.h"
+#include "Components/ActorComponent.h"
 #include "OmniCaptureRenderer.generated.h"
 
 class IOmniCaptureEncoder;
@@ -208,7 +209,6 @@ private:
     
     // 渲染事件句柄
     FDelegateHandle OnEndFrameRenderHandle;
-    FDelegateHandle OnPostResolvedSceneColorHandle;
     
     // 互斥锁，用于保护共享数据
     mutable FCriticalSection CriticalSection;
