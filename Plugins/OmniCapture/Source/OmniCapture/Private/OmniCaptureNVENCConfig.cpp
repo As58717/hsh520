@@ -19,7 +19,7 @@ UOmniCaptureNVENCConfig::UOmniCaptureNVENCConfig(const FObjectInitializer& Objec
     , bEnableDynamicGOP(true)
     , bUseSceneChangeDetection(true)
     , MaxEncodingLatencyMs(33)
-    , EncodingThreadPriority(ETThreadPriority::High)
+    , EncodingThreadPriority(EOmniCaptureThreadPriority::Highest)
     , ColorFormat(EOmniCaptureColorFormat::P010)
     , bEnableHDR(false)
     , ColorSpace(TEXT("REC.709"))
