@@ -71,7 +71,7 @@ public:
 
     /** 线程优先级 */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, config, Category = "Advanced Encoding Settings", meta = (DisplayName = "Thread Priority"))
-    EThreadPriority EncodingThreadPriority;
+    EOmniCaptureThreadPriority EncodingThreadPriority;
 
     // 色彩设置
     /** 色彩格式 */

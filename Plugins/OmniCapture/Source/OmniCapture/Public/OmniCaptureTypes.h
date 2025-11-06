@@ -152,11 +152,24 @@ enum class EOmniCaptureAuxiliaryPassType : uint8
 UENUM(BlueprintType)
 enum class EOmniCaptureQualityPreset : uint8
 {
+        Balanced UMETA(DisplayName = "平衡"),
         Low UMETA(DisplayName = "低质量"),
         Medium UMETA(DisplayName = "中等质量"),
         High UMETA(DisplayName = "高质量"),
         Ultra UMETA(DisplayName = "超高质量"),
         Lossless UMETA(DisplayName = "无损质量")
+};
+
+UENUM(BlueprintType)
+enum class EOmniCaptureThreadPriority : uint8
+{
+        Normal UMETA(DisplayName = "普通"),
+        AboveNormal UMETA(DisplayName = "高于普通"),
+        BelowNormal UMETA(DisplayName = "低于普通"),
+        Highest UMETA(DisplayName = "最高"),
+        Lowest UMETA(DisplayName = "最低"),
+        SlightlyBelowNormal UMETA(DisplayName = "略低于普通"),
+        TimeCritical UMETA(DisplayName = "时间关键")
 };
 
 USTRUCT(BlueprintType)
