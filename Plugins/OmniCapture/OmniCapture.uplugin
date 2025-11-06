@@ -29,11 +29,6 @@
         "ImageWriteQueue",
         "ImageCore"
       ]
-    },
-    {
-      "Name": "OmniCaptureEditor",
-      "Type": "Editor",
-      "LoadingPhase": "PostEngineInit"
     }
   ],
   "EngineVersion": "",

@@ -3,8 +3,8 @@
 #include "NVENCEncoderSession.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformMisc.h"
+#include "HAL/PlatformProcess.h"
 #include "Logging/LogMacros.h"
-#include "Windows/WindowsHWrapper.h"
 
 // 定义日志类别
 DECLARE_LOG_CATEGORY_EXTERN(LogOmniCaptureNVENC, Log, All);
@@ -13,7 +13,7 @@ DEFINE_LOG_CATEGORY(LogOmniCaptureNVENC);
 // NVENC API定义（简化版本，实际使用时需要完整的nvEncodeAPI.h头文件）
 #define NVENCAPI_FUNCTION_LIST_VER 12
 
-struct NV_ENCODE_API_FUNCTION_LIST
+struct _NV_ENCODE_API_FUNCTION_LIST
 {
     uint32_t version;
     // 简化的函数指针定义，实际实现需要完整的函数列表
@@ -138,21 +138,10 @@ void FNVENCEncoderSession::Shutdown()
 bool FNVENCEncoderSession::LoadNVENCApi()
 {
     // 尝试加载nvEncodeAPI64.dll
-    FString NVENCDllPath = TEXT("nvEncodeAPI64.dll");
-    
-    // 首先尝试系统目录
-    FString SystemPath = FPlatformMisc::GetWindowsSystemDir();
-    FString FullNVENCDllPath = FPaths::Combine(SystemPath, NVENCDllPath);
-    
-    if (!FPaths::FileExists(FullNVENCDllPath))
-    {
-        // 如果系统目录中没有，尝试直接加载（依赖系统PATH）
-        NVENCModuleHandle = FPlatformProcess::GetDllHandle(*NVENCDllPath);
-    }
-    else
-    {
-        NVENCModuleHandle = FPlatformProcess::GetDllHandle(*FullNVENCDllPath);
-    }
+    const FString NVENCDllPath = TEXT("nvEncodeAPI64.dll");
+
+    // 直接尝试从搜索路径加载，避免依赖特定的系统目录实现
+    NVENCModuleHandle = FPlatformProcess::GetDllHandle(*NVENCDllPath);
 
     if (!NVENCModuleHandle)
     {

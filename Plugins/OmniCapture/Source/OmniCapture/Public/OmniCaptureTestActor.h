@@ -7,6 +7,8 @@
 #include "OmniCaptureNVENCConfig.h"
 #include "OmniCaptureTestActor.generated.h"
 
+class UOmniCaptureRenderComponent;
+
 UCLASS(Blueprintable, BlueprintType)
 class OMNICAPTURE_API AOmniCaptureTestActor : public AActor
 {
@@ -64,7 +66,13 @@ public:
     // 是否正在捕获
     UFUNCTION(BlueprintCallable, Category = "OmniCapture")
     bool IsCurrentlyCapturing() const;
-    
+
+    UFUNCTION(BlueprintCallable, Category = "OmniCapture")
+    bool IsPaused() const;
+
+    UFUNCTION(BlueprintCallable, Category = "OmniCapture")
+    void SetCaptureHDR(bool bInEnableHDR);
+
     // 获取当前编码统计信息
     UFUNCTION(BlueprintCallable, Category = "OmniCapture")
     void GetEncodingStatistics(float& OutAverageBitrate, float& OutCurrentFPS) const;

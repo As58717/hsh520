@@ -5,8 +5,11 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-// NVENC API 定义
-struct NV_ENCODE_API_FUNCTION_LIST;
+// 简化的 NVENC API 函数列表占位类型
+struct FNVENCAPIFunctionList
+{
+    uint32 Version = 0;
+};
 
 /**
  * NVENC API 管理器类
@@ -37,7 +40,7 @@ public:
     bool IsNVEncodeAPILoaded() const;
     
     /** 获取 NVENC API 函数列表 */
-    NV_ENCODE_API_FUNCTION_LIST* GetNVEncodeAPIFunctions();
+    FNVENCAPIFunctionList* GetNVEncodeAPIFunctions();
     
     /** 获取 NVENC 驱动的版本信息 */
     FString GetNVENCDriverVersion() const;
@@ -86,7 +89,7 @@ private:
     void* NVEncodeAPILibraryHandle;
     
     /** NVENC API 函数列表 */
-    TUniquePtr<NV_ENCODE_API_FUNCTION_LIST> NVEncodeAPIFuncList;
+    TUniquePtr<FNVENCAPIFunctionList> NVEncodeAPIFuncList;
     
     /** NVENC 动态库路径 */
     FString NVEncodeAPILibraryPath;

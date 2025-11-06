@@ -8,6 +8,7 @@
 #include "RHI.h"
 #include "RHIResources.h"
 #include "Templates/SharedPointer.h"
+#include "Templates/UniquePtr.h"
 
 class FNVENCEncoderSession;
 class FNVENCFrameContext;
@@ -24,9 +25,12 @@ struct FOmniNVENCDirectCapabilities
     bool bSupportsNV12 = false;
     bool bSupportsP010 = false;
     bool bSupportsBGRA = false;
+    bool bSupportsHDR = false;
     int32 MaxWidth = 0;
     int32 MaxHeight = 0;
     int32 MaxBitrateKbps = 0;
+    int32 MaxBFrames = 0;
+    int32 MaxGOPSize = 0;
     FString DeviceName;
     FString DriverVersion;
     int32 SDKVersion = 0;
@@ -103,6 +107,9 @@ public:
     FStats GetStats() const { return Stats; }
 
 private:
+    class FNVENCEncodeThread;
+    friend class FNVENCEncodeThread;
+
     /**
      * 初始化NVENC API
      */
@@ -141,8 +148,7 @@ private:
     FCriticalSection FrameQueueMutex;
 
     // 编码线程
-    FRunnableThread* EncodeThread = nullptr;
-    TAtomic<bool> bEncodeThreadShouldExit = false;
+    TUniquePtr<FNVENCEncodeThread> EncodeThread;
 
     // 统计信息
     FStats Stats;

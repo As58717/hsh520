@@ -6,6 +6,7 @@
 #include "HAL/PlatformProcess.h"
 #include "HAL/PlatformTime.h"
 #include "HAL/Runnable.h"
+#include "HAL/RunnableThread.h"
 
 // 定义日志类别
 DECLARE_LOG_CATEGORY_EXTERN(LogOmniCaptureNVENC, Log, All);
@@ -21,10 +22,7 @@ class FNVENCEncodeThread : public FRunnable
 public:
     FNVENCEncodeThread(FOmniCaptureNVENCEncoderDirect* InEncoder)
         : Encoder(InEncoder)
-        , Thread(nullptr)
-        , StopTaskCounter(0)
-    {
-    }
+    {}
 
     virtual ~FNVENCEncodeThread() override
     {
@@ -64,16 +62,14 @@ public:
     }
 
 private:
-    FOmniCaptureNVENCEncoderDirect* Encoder;
-    FRunnableThread* Thread;
+    FOmniCaptureNVENCEncoderDirect* Encoder = nullptr;
+    FRunnableThread* Thread = nullptr;
     FThreadSafeCounter StopTaskCounter;
 };
 
 FOmniCaptureNVENCEncoderDirect::FOmniCaptureNVENCEncoderDirect()
     : bIsInitialized(false)
     , bIsNVENCAPIInitialized(false)
-    , bEncodeThreadShouldExit(false)
-    , EncodeThread(nullptr)
 {
     UE_LOG(LogOmniCaptureNVENC, Log, TEXT("Creating NVENC direct encoder"));
 }
@@ -119,7 +115,7 @@ bool FOmniCaptureNVENCEncoderDirect::Initialize(const FIntPoint& InResolution, E
     }
 
     // 创建编码线程
-    EncodeThread = new FNVENCEncodeThread(this);
+    EncodeThread = MakeUnique<FNVENCEncodeThread>(this);
     if (EncodeThread)
     {
         EncodeThread->Start();
@@ -138,11 +134,10 @@ void FOmniCaptureNVENCEncoderDirect::Shutdown()
     }
 
     // 停止编码线程
-    bEncodeThreadShouldExit = true;
     if (EncodeThread)
     {
-        delete EncodeThread;
-        EncodeThread = nullptr;
+        EncodeThread->Stop();
+        EncodeThread.Reset();
     }
 
     // 清理编码器会话
@@ -270,11 +265,10 @@ void FOmniCaptureNVENCEncoderDirect::Finalize(TFunctionRef<void(const uint8*, ui
     }
 
     // 停止编码线程
-    bEncodeThreadShouldExit = true;
     if (EncodeThread)
     {
-        delete EncodeThread;
-        EncodeThread = nullptr;
+        EncodeThread->Stop();
+        EncodeThread.Reset();
     }
 
     // 处理剩余的帧
@@ -298,12 +292,14 @@ void FOmniCaptureNVENCEncoderDirect::Finalize(TFunctionRef<void(const uint8*, ui
 
 bool FOmniCaptureNVENCEncoderDirect::IsNVENCAvailable()
 {
-    // 检查NVENC模块是否存在
-    FString NVENCDllPath = TEXT("nvEncodeAPI64.dll");
-    FString SystemPath = FPlatformMisc::GetWindowsSystemDir();
-    FString FullNVENCDllPath = FPaths::Combine(SystemPath, NVENCDllPath);
-    
-    return FPaths::FileExists(FullNVENCDllPath) || FPlatformProcess::GetDllHandle(*NVENCDllPath) != nullptr;
+    const FString NVENCDllPath = TEXT("nvEncodeAPI64.dll");
+    void* TempHandle = FPlatformProcess::GetDllHandle(*NVENCDllPath);
+    if (TempHandle)
+    {
+        FPlatformProcess::FreeDllHandle(TempHandle);
+        return true;
+    }
+    return false;
 }
 
 FOmniNVENCDirectCapabilities FOmniCaptureNVENCEncoderDirect::GetNVENCCapabilities()
@@ -326,9 +322,12 @@ FOmniNVENCDirectCapabilities FOmniCaptureNVENCEncoderDirect::GetNVENCCapabilitie
     Capabilities.bSupportsNV12 = NVENCCapabilities.bSupportsNV12;
     Capabilities.bSupportsP010 = NVENCCapabilities.bSupportsP010;
     Capabilities.bSupportsBGRA = NVENCCapabilities.bSupportsBGRA;
+    Capabilities.bSupportsHDR = false;
     Capabilities.MaxWidth = NVENCCapabilities.MaxWidth;
     Capabilities.MaxHeight = NVENCCapabilities.MaxHeight;
     Capabilities.MaxBitrateKbps = NVENCCapabilities.MaxBitrateKbps;
+    Capabilities.MaxBFrames = 0;
+    Capabilities.MaxGOPSize = 0;
     
     // 获取设备信息
     Capabilities.DeviceName = TEXT("NVIDIA GPU");
@@ -444,16 +443,15 @@ void FOmniCaptureNVENCEncoderDirect::ProcessFrameQueue()
     else
     {
         // GPU帧路径
-        if (FrameContext->Fence.IsValid())
+        if (FrameContext->Fence.IsValid() && !FrameContext->Fence->Poll())
         {
-            // 等待GPU完成
-            FrameContext->Fence->Wait();
+            return;
         }
-        
-        if (FrameContext->RenderTarget.IsValid() && FrameContext->RenderTarget->GetRenderTargetTexture().IsValid())
+
+        if (FrameContext->RenderTarget.IsValid())
         {
             bEncoded = EncoderSession->EncodeTexture(
-                FrameContext->RenderTarget->GetRenderTargetTexture(),
+                FrameContext->RenderTarget->GetRenderTargetItem().TargetableTexture,
                 FrameContext->Timestamp,
                 FrameContext->bIsKeyFrame,
                 Bitstream

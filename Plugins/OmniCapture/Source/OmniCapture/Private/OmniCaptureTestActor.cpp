@@ -10,6 +10,7 @@
 #include "Logging/LogMacros.h"
 #include "HAL/PlatformFilemanager.h"
 #include "HAL/FileManager.h"
+#include "Misc/Paths.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogOmniCaptureTest, Log, All);
 
@@ -276,6 +277,20 @@ void AOmniCaptureTestActor::TestFrameRate(float FrameRate)
 bool AOmniCaptureTestActor::IsCurrentlyCapturing() const
 {
     return CaptureComponent && CaptureComponent->IsCapturing();
+}
+
+bool AOmniCaptureTestActor::IsPaused() const
+{
+    return CaptureComponent && CaptureComponent->IsPaused();
+}
+
+void AOmniCaptureTestActor::SetCaptureHDR(bool bInEnableHDR)
+{
+    bEnableHDR = bInEnableHDR;
+    if (CaptureComponent)
+    {
+        CaptureComponent->SetCaptureHDR(bEnableHDR);
+    }
 }
 
 void AOmniCaptureTestActor::GetEncodingStatistics(float& OutAverageBitrate, float& OutCurrentFPS) const
